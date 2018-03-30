@@ -3,6 +3,7 @@ various SLAX scripts
 ### requireIFdescriptions.slax
 
 will cause commit to fail unless PHY inteface has a description
+
 TODO: check for descriptions on any configured units with the following logic:
 ```
     if number of units > 1, require description on each unit
