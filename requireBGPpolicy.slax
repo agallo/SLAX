@@ -1,0 +1,46 @@
+version 1.1;
+
+ns junos = "http://xml.juniper.net/junos/*/junos";
+ns xnm = "http://xml.juniper.net/xnm/1.1/xnm";
+ns jcs = "http://xml.juniper.net/junos/commit-scripts/1.0";
+
+import "../import/junos.xsl";
+
+
+template emit-warning($message) {
+        <xnm:warning> {
+                call jcs:edit-path();
+                <message> $message;
+        }
+}
+
+template emit-error($message) {
+        <xnm:error> {
+                call jcs:edit-path();
+                <message> $message;
+        }
+}
+
+match configuration {
+        for-each (protocols/bgp/group) {
+                                if (type == "external") {
+                                /* internal peers don't require a policy */
+                                        if (!import) {
+                                                        call jcs:emit-change() {
+                                                                with $content = {
+                                                                        <import> "po_DEFAULT-BGP-POLICY-DENY-ALL";
+                                                                        }
+                                                                with $message = "applying default DENY import policy to " _ name;
+                                                                }
+                                                        }
+                                        if (!export) {
+                                                        call jcs:emit-change() {
+                                                                with $content = {
+                                                                        <export> "po_DEFAULT-BGP-POLICY-DENY-ALL";
+                                                                        }
+                                                                with $message = "applying default DENY export policy to " _ name;
+                                                                }
+                                                        }
+                                }
+                }
+        }
