@@ -3,6 +3,7 @@ various SLAX scripts
 ### requireIFdescriptions.slax
 
 will cause commit to fail unless PHY inteface has a description
+
 if the interface has multiple units, each unit requires a description (the logic here is that a with a single unit, the description of the parent PHY will suffice)
 
 
