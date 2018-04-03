@@ -1,15 +1,15 @@
-various SLAX scripts
+various SLAX scripts for Junos
 
 ### requireIFdescriptions.slax
 
-will cause commit to fail unless PHY inteface has a description
+A commit script that will cause commit to fail unless PHY inteface has a description
 
 if the interface has multiple units, each unit requires a description (the logic here is that a with a single unit, the description of the parent PHY will suffice)
 
 
 ### requireBGPpolicy.slax
 
-check all external BGP peers- if no policy, apply default DENY
+A commit script to check all external BGP peers- if no policy, apply default DENY
 
 requires `po_DEFAULT-BGP-POLICY-DENY-ALL` to be configured
 ```
