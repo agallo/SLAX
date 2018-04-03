@@ -1,4 +1,10 @@
 version 1.1;
+/* created 03APR2018 akg
+this commit script requires that each PHY interface that is configured have a description.
+additionally, if the interface has multiple units, then each unit must have a description
+(to put another way, if a physical interface has only one unit, a description isn't required on the unit)
+*/
+
 
 ns junos = "http://xml.juniper.net/junos/*/junos";
 ns xnm = "http://xml.juniper.net/xnm/1.1/xnm";
@@ -7,27 +13,54 @@ ns jcs = "http://xml.juniper.net/junos/commit-scripts/1.0";
 import "../import/junos.xsl";
 
 template emit-warning($message) {
-        <xnm:warning> {
-                call jcs:edit-path();
-                <message> $message;
+    <xnm:warning> {
+        call jcs:edit-path();
+        <message> $message;
         }
 }
 
 template emit-error($message) {
-        <xnm:error> {
-                call jcs:edit-path();
-                <message> $message;
-        }
+    <xnm:error> {
+        call jcs:edit-path();
+        <message> $message;
+    }
 }
 
 match configuration {
-        for-each (interfaces/interface) {
-                if (!description) {
-                        call emit-error {
-                                with $message = {
-                                        expr name _ " does not have a description";
-                                }
-                        }
+    for-each (interfaces/interface) {
+        if (!description) {
+        call emit-error {
+            with $message = {
+                expr name _ " does not have a description.  All PHY interfaces require a description";
+                    }
                 }
+            }
+        mvar $parentIF = name;
+        mvar $unitcount = 0;
+        mvar $unitdescriptioncount = 0;
+        mvar $firstunitdesc = "False";
+        mvar $firstunitname = "";
+        for-each (unit) {
+            set $unitcount = $unitcount + 1;
+            if ($unitcount == 1) { set $firstunitname = name; }
+            if ($unitcount == 1 && description) {
+                set $unitdescriptioncount = $unitdescriptioncount + 1;
+                set $firstunitdesc = "True";
+               }
+            if ($unitcount > 1 && !description) {
+               call emit-error {
+                  with $message = {
+                      expr "Unit " _ name _ " of interface " _ $parentIF _ " has no description. Each unit of a multi-unit interface requires a description.";
+                    }
+                 }
+            }
         }
+        if ($unitcount > 1 && $firstunitdesc == "False") {
+           call emit-error {
+              with $message = {
+                  expr "Unit " _ $firstunitname _ " of interface " _ $parentIF _ " has no description. Each unit of a multi-unit interface requires a description.";
+                }
+            }
+        }
+   }
 }
