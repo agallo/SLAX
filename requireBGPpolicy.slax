@@ -1,4 +1,12 @@
 version 1.1;
+/* created 03APR2018 akg
+this commit script requires that each external BGP peer have a policy applied (both import and export).
+if a peer is configured with no policy, po_DEFAULT-BGP-POLICY-DENY-ALL is applied, and a warning is issued, but commit will succeeed.
+this policy rejects everything.
+this policy must exist, or the commit will fail
+*/
+
+
 
 ns junos = "http://xml.juniper.net/junos/*/junos";
 ns xnm = "http://xml.juniper.net/xnm/1.1/xnm";
@@ -8,39 +16,38 @@ import "../import/junos.xsl";
 
 
 template emit-warning($message) {
-        <xnm:warning> {
-                call jcs:edit-path();
-                <message> $message;
-        }
+    <xnm:warning> {
+        call jcs:edit-path();
+            <message> $message;
+    }
 }
 
 template emit-error($message) {
-        <xnm:error> {
-                call jcs:edit-path();
-                <message> $message;
-        }
+    <xnm:error> {
+        call jcs:edit-path();
+            <message> $message;
+    }
 }
 
 match configuration {
-        for-each (protocols/bgp/group) {
-                                if (type == "external") {
-                                /* internal peers don't require a policy */
-                                        if (!import) {
-                                                        call jcs:emit-change() {
-                                                                with $content = {
-                                                                        <import> "po_DEFAULT-BGP-POLICY-DENY-ALL";
-                                                                        }
-                                                                with $message = "applying default DENY import policy to " _ name;
-                                                                }
-                                                        }
-                                        if (!export) {
-                                                        call jcs:emit-change() {
-                                                                with $content = {
-                                                                        <export> "po_DEFAULT-BGP-POLICY-DENY-ALL";
-                                                                        }
-                                                                with $message = "applying default DENY export policy to " _ name;
-                                                                }
-                                                        }
-                                }
+    for-each (protocols/bgp/group) {
+        if (type == "external") {
+            if (!import) {
+                call jcs:emit-change() {
+                    with $content = {
+                        <import> "po_DEFAULT-BGP-POLICY-DENY-ALL";
+                        }
+                            with $message = "applying default DENY import policy to " _ name;
+                            }
+                    }
+            if (!export) {
+                call jcs:emit-change() {
+                with $content = {
+                    <export> "po_DEFAULT-BGP-POLICY-DENY-ALL";
+                    }
+                    with $message = "applying default DENY export policy to " _ name;
+                    }
                 }
-        }
+            }
+    }
+}
