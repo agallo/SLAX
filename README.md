@@ -2,6 +2,12 @@ various SLAX scripts for Junos
 
 ### requireIFdescriptions.slax
 
+A commit script that will look for "apply-macro GTSM" in a BGP group and take the following action:
+ * add multi-hop ttl 255 to the BGP group
+ * add the neighbor address to a family-specific prefix list (v4 or v6)
+
+### requireIFdescriptions.slax
+
 A commit script that will cause commit to fail unless PHY inteface has a description
 
 if the interface has multiple units, each unit requires a description (the logic here is that a with a single unit, the description of the parent PHY will suffice)
